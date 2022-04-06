@@ -1,0 +1,13 @@
+<table>
+    <tr>
+      <th>Id</th>
+      <th>Name</th>
+    </tr>
+  
+    <% for (const user of users) { %>
+    <tr>
+      <td><%= user.id %></td>
+      <td><%= user.name %></td>
+    </tr>
+    <% } %>
+  </table>
