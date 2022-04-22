@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
 // physics
-import { ExtendedMesh, PhysicsLoader} from 'enable3d'
+import { ExtendedMesh, PhysicsLoader } from 'enable3d'
 import { AmmoPhysics } from '@enable3d/ammo-physics'
 // Flat
 import { TextTexture, TextSprite } from '@enable3d/three-graphics/jsm/flat'
@@ -77,6 +77,30 @@ const MainScene = () => {
 
   // clock
   const clock = new THREE.Clock()
+
+  const socket = new WebSocket(location.origin.replace(/^http/, 'ws'));
+
+  socket.addEventListener('message', (message) => {
+    const json = JSON.parse(message.data)
+
+    if (json.type === "sensor") {
+
+      const quaternion = new THREE.Quaternion(
+        json.quaternion.x,
+        json.quaternion.y,
+        json.quaternion.z,
+        json.quaternion.w);
+
+      console.log(quaternion)
+
+      sprite.setText(
+        `quaternion.x:${quaternion.x}\n`+
+        `quaternion.x:${quaternion.y}\n`+
+        `quaternion.x:${quaternion.z}\n`+
+        `quaternion.x:${quaternion.w}\n`
+      ); // WRITE TEXT
+    }
+  })
 
   // loop
   const animate = () => {
