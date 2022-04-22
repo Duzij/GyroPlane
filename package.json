@@ -1,39 +1,46 @@
 {
-  "name": "todos",
-  "version": "1.0.0",
-  "description": "Todo app",
-  "main": "index.js",
-  "type": "module",
-  "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js",
-    "migrate": "npx knex migrate:latest --knexfile ./knexfile.js",
-    "test": "ava",
-    "lint": "npx eslint * --fix"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/adamjedlicka/node-todos.git"
-  },
-  "author": "Adam Jedlička <mail@adamjedlicka.cz>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/adamjedlicka/node-todos/issues"
-  },
-  "homepage": "https://github.com/adamjedlicka/node-todos#readme",
-  "dependencies": {
-    "@vscode/sqlite3": "^5.0.8",
-    "ejs": "^3.1.6",
-    "express": "^4.17.3",
-    "knex": "^1.0.4",
-    "three": "^0.139.2",
-    "ws": "^8.5.0"
-  },
-  "devDependencies": {
-    "ava": "^4.1.0",
-    "eslint": "^8.12.0",
-    "eslint-config-google": "^0.14.0",
-    "nodemon": "^2.0.15",
-    "supertest": "^6.2.2"
-  }
+    "name": "gyroscope",
+    "version": "1.0.0",
+    "description": "Simple app to play with your phone gyroscope",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "start": "node index.js && npm-run-all --parallel webpack serve",
+        "dev": "nodemon index.js",
+        "migrate": "npx knex migrate:latest --knexfile ./knexfile.js",
+        "test": "ava",
+        "lint": "npx eslint * --fix",
+        "build": "npm run bundle",
+        "bundle": "webpack --config webpack.config.cjs",
+        "webpack": "webpack --config webpack.config.cjs --watch"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Duzij/4IT573_project.git"
+    },
+    "author": "Maxim Duzij <duzm00@vse.cz>",
+    "license": "MIT",
+    "dependencies": {
+        "@enable3d/ammo-physics": "^0.25.1",
+        "@enable3d/three-graphics": "^0.25.1",
+        "@vscode/sqlite3": "^5.0.8",
+        "ejs": "^3.1.6",
+        "enable3d": "^0.25.1",
+        "express": "^4.17.3",
+        "knex": "^1.0.4",
+        "three": "^0.139.2",
+        "ws": "^8.5.0"
+    },
+    "devDependencies": {
+        "ava": "^4.1.0",
+        "eslint": "^8.12.0",
+        "eslint-config-google": "^0.14.0",
+        "nodemon": "^2.0.15",
+        "npm-run-all": "^4.1.5",
+        "supertest": "^6.2.2",
+        "ts-loader": "^9.2.6",
+        "typescript": "^4.5.2",
+        "webpack": "^5.64.4",
+        "webpack-cli": "^4.9.1"
+    }
 }
