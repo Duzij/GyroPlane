@@ -12,61 +12,20 @@
     <h1>Connect to room</h1>
 
     <h1 id="status"></h1>
+    <table>
+        <thead>
+            <tr>
+                <th>x</th>
+                <th>y</th>
+                <th>z</th>
+                <th>w</th>
+            </tr>
+        </thead>
+        <tbody id="sensor_status">
+        </tbody>
+    </table>
 
-    <script>
-        let text;
-        let person = prompt("Please enter your name:", "Harry Potter");
-        if (person == null || person == "") {
-            text = "User cancelled the prompt.";
-        } else {
-
-            const package = JSON.stringify({
-                person
-            });
-
-            const socket = new WebSocket(location.origin.replace(/^http/, 'ws'));
-
-            socket.addEventListener('message', (message) => {
-                const json = JSON.parse(message.data)
-
-                if (json.type === "connected") {
-                    document.getElementById('status').innerHTML = "connected with id: " + json.id;
-                    socket.send(JSON.stringify({
-                        type: "connected",
-                        id: json.id,
-                        name: person
-                    }));
-                }
-            })
-
-            function initSensor() {
-                sensor = new AbsoluteOrientationSensor({
-                    frequency: 60
-                });
-                sensor.onreading = () => {
-                    model.quaternion.fromArray()
-
-                    socket.send(JSON.stringify({
-                        type: "sensor",
-                        id: json.id,
-                        quaternion: sensor.quaternion
-                    }));
-                };
-                sensor.onerror = (event) => {
-                    if (event.error.name == 'NotReadableError') {
-                        console.log('Sensor is not available.');
-                    }
-                };
-                sensor.start();
-            }
-
-            socket.onerror = function(error) {
-                alert(`[Error] ${error.message}`);
-                document.getElementById('status').innerHTML = "Disconnected";
-            };
-
-        }
-    </script>
+    <script src="/connect.js"></script>
 </body>
 
 </html>

@@ -38,14 +38,6 @@ const MainScene = () => {
   renderer.autoClear = false
   document.body.appendChild(renderer.domElement)
 
-  // add 2d text
-  const text = new TextTexture('some 2d text', { fontWeight: 'bold', fontSize: 48 })
-  const sprite = new TextSprite(text)
-  const scale = 0.5
-  sprite.setScale(scale)
-  sprite.setPosition(0 + (text.width * scale) / 2 + 12, height - (text.height * scale) / 2 - 12)
-  scene2d.add(sprite)
-
   // dpr
   const DPR = window.devicePixelRatio
   renderer.setPixelRatio(Math.min(2, DPR))
@@ -66,52 +58,86 @@ const MainScene = () => {
 
   const { factory } = physics
 
-  const box = factory.add.box({ x: 0, y: 5, z: 0, width: 20, height: 1, depth: 20 }, { lambert: { color: 'red', transparent: true, opacity: 0.5 } })
+  const box = factory.add.box({ x: 0, y: 0, z: 0, width: 20, height: 1, depth: 20 }, { lambert: { color: 'red', transparent: true, opacity: 0.5 } })
   physics.add.existing(box, { mass: 0, collisionFlags: 2 })
 
   const material = new THREE.MeshLambertMaterial({ color: 0xffff00 })
   const sphere = new ExtendedMesh(new THREE.SphereBufferGeometry(1), material)
   scene.add(sphere)
   sphere.position.set(0, 8, 0)
-  physics.add.existing(sphere as any)
+  physics.add.existing(sphere as any, { mass: 100 })
 
   // clock
   const clock = new THREE.Clock()
 
-  const socket = new WebSocket(location.origin.replace(/^http/, 'ws'));
+  let params = (new URL(location.toString())).searchParams;
+  let userId = params.get("userId");
+  if (userId) {
+    const connectedUserText = 'User ' + userId + ' connected';
+    const text = new TextTexture(connectedUserText, { fontWeight: 'bold', fontSize: 35 });
+    const sprite = new TextSprite(text);
+    const scale = 0.5;
+    sprite.setScale(scale);
+    sprite.setPosition(0 + (text.width * scale) / 2 + 12, height - (text.height * scale) / 2 - 48);
+    scene2d.add(sprite);
 
-  socket.addEventListener('message', (message) => {
-    const json = JSON.parse(message.data)
+    const socket = new WebSocket(location.origin.replace(/^http/, 'ws'));
 
-    if (json.type === "sensor") {
+    socket.addEventListener('message', (message) => {
+      const json = JSON.parse(message.data)
 
-      const quaternion = new THREE.Quaternion(
-        json.quaternion.x,
-        json.quaternion.y,
-        json.quaternion.z,
-        json.quaternion.w);
+      if (json.type === "connected") {
+        socket.send(JSON.stringify({
+          type: "platform_connected",
+          platformId: json.id,
+          userId: userId
+        }));
+    
+      }
 
-      console.log(quaternion)
+      if (json.type === "sensor") {
 
-      sprite.setText(
-        `quaternion.x:${quaternion.x}\n`+
-        `quaternion.x:${quaternion.y}\n`+
-        `quaternion.x:${quaternion.z}\n`+
-        `quaternion.x:${quaternion.w}\n`
-      ); // WRITE TEXT
-    }
-  })
+        const quaternion = new THREE.Quaternion(
+          json.quaternion[0],
+          -json.quaternion[3],
+          -json.quaternion[1],
+          json.quaternion[2]);
+
+          // box.quaternion.set(json.quaternion[0],
+          //   json.quaternion[3],
+          //   json.quaternion[1],
+          //   json.quaternion[2]
+          //   ).invert();
+
+           box.quaternion.copy(quaternion);
+
+
+        sprite.setText(
+          `quaternion.x:${box.quaternion.x}\n` +
+          `quaternion.y:${box.quaternion.y}\n` +
+          `quaternion.z:${box.quaternion.z}\n` +
+          `quaternion.w:${box.quaternion.w}\n` +
+
+          `rotation.x:${box.rotation.x}\n` +
+          `rotation.y:${box.rotation.y}\n` +
+          `rotation.z:${box.rotation.z}\n`
+        ); // WRITE TEXT
+      }
+    });
+
+
+  }
+
+
+
 
   // loop
   const animate = () => {
-    box.rotation.x += 0.001
-    box.rotation.y += 0.001
+    
     box.body.needUpdate = true // this is how you update kinematic bodies
 
     physics.update(clock.getDelta() * 1000)
     physics.updateDebugger()
-
-    sprite.setText(clock.getDelta().toString()); // WRITE TEXT
 
     // you have to clear and call render twice because there are 2 scenes
     // one 3d scene and one 2d scene
