@@ -21,7 +21,7 @@ const MainScene = () => {
 
   // camera
   const camera = new THREE.PerspectiveCamera(50, width / height, 0.2, 100)
-  camera.position.set(50, 20, 20)
+  camera.position.set(10, 6, -25)
   camera.lookAt(0, 0, 0)
 
   // you can access Ammo directly if you want
@@ -54,7 +54,8 @@ const MainScene = () => {
 
   // physics
   const physics = new AmmoPhysics(scene as any)
-  physics.debug?.enable()
+  //physics.debug?.enable()
+  physics.config..gravity.y = -15;
 
   const { factory } = physics
 
@@ -65,7 +66,7 @@ const MainScene = () => {
   const sphere = new ExtendedMesh(new THREE.SphereBufferGeometry(1), material)
   scene.add(sphere)
   sphere.position.set(0, 8, 0)
-  physics.add.existing(sphere as any, { mass: 100 })
+  physics.add.existing(sphere as any)
 
   // clock
   const clock = new THREE.Clock()
@@ -92,7 +93,7 @@ const MainScene = () => {
           platformId: json.id,
           userId: userId
         }));
-    
+
       }
 
       if (json.type === "sensor") {
@@ -103,14 +104,7 @@ const MainScene = () => {
           -json.quaternion[1],
           json.quaternion[2]);
 
-          // box.quaternion.set(json.quaternion[0],
-          //   json.quaternion[3],
-          //   json.quaternion[1],
-          //   json.quaternion[2]
-          //   ).invert();
-
-           box.quaternion.copy(quaternion);
-
+        box.quaternion.copy(quaternion);
 
         sprite.setText(
           `quaternion.x:${box.quaternion.x}\n` +
@@ -133,11 +127,13 @@ const MainScene = () => {
 
   // loop
   const animate = () => {
-    
+
     box.body.needUpdate = true // this is how you update kinematic bodies
 
+    console.log(camera.position);
+
     physics.update(clock.getDelta() * 1000)
-    physics.updateDebugger()
+    //physics.updateDebugger()
 
     // you have to clear and call render twice because there are 2 scenes
     // one 3d scene and one 2d scene
