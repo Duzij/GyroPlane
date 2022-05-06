@@ -5,8 +5,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 // physics
 import { ExtendedMesh, PhysicsLoader } from 'enable3d'
 import { AmmoPhysics } from '@enable3d/ammo-physics'
+import { handleConnection } from './connection'
 // Flat
-import { TextTexture, TextSprite } from '@enable3d/three-graphics/jsm/flat'
 
 console.log('Three.js version r' + THREE.REVISION)
 
@@ -54,8 +54,7 @@ const MainScene = () => {
 
   // physics
   const physics = new AmmoPhysics(scene as any)
-  //physics.debug?.enable()
-  physics.config..gravity.y = -15;
+  physics.debug?.enable()
 
   const { factory } = physics
 
@@ -74,66 +73,15 @@ const MainScene = () => {
   let params = (new URL(location.toString())).searchParams;
   let userId = params.get("userId");
   if (userId) {
-    const connectedUserText = 'User ' + userId + ' connected';
-    const text = new TextTexture(connectedUserText, { fontWeight: 'bold', fontSize: 35 });
-    const sprite = new TextSprite(text);
-    const scale = 0.5;
-    sprite.setScale(scale);
-    sprite.setPosition(0 + (text.width * scale) / 2 + 12, height - (text.height * scale) / 2 - 48);
-    scene2d.add(sprite);
-
-    const socket = new WebSocket(location.origin.replace(/^http/, 'ws'));
-
-    socket.addEventListener('message', (message) => {
-      const json = JSON.parse(message.data)
-
-      if (json.type === "connected") {
-        socket.send(JSON.stringify({
-          type: "platform_connected",
-          platformId: json.id,
-          userId: userId
-        }));
-
-      }
-
-      if (json.type === "sensor") {
-
-        const quaternion = new THREE.Quaternion(
-          json.quaternion[0],
-          -json.quaternion[3],
-          -json.quaternion[1],
-          json.quaternion[2]);
-
-        box.quaternion.copy(quaternion);
-
-        sprite.setText(
-          `quaternion.x:${box.quaternion.x}\n` +
-          `quaternion.y:${box.quaternion.y}\n` +
-          `quaternion.z:${box.quaternion.z}\n` +
-          `quaternion.w:${box.quaternion.w}\n` +
-
-          `rotation.x:${box.rotation.x}\n` +
-          `rotation.y:${box.rotation.y}\n` +
-          `rotation.z:${box.rotation.z}\n`
-        ); // WRITE TEXT
-      }
-    });
-
-
+    handleConnection(userId, scene2d, box)
   }
-
-
-
 
   // loop
   const animate = () => {
 
     box.body.needUpdate = true // this is how you update kinematic bodies
-
-    console.log(camera.position);
-
     physics.update(clock.getDelta() * 1000)
-    //physics.updateDebugger()
+    physics.updateDebugger()
 
     // you have to clear and call render twice because there are 2 scenes
     // one 3d scene and one 2d scene
@@ -149,3 +97,5 @@ const MainScene = () => {
 
 // '/ammo' is the folder where all ammo file are
 PhysicsLoader('/ammo', () => MainScene())
+
+
