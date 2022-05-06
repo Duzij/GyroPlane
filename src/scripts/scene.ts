@@ -3,9 +3,11 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
 // physics
-import { ExtendedMesh, PhysicsLoader } from 'enable3d'
+import { PhysicsLoader } from 'enable3d'
 import { AmmoPhysics } from '@enable3d/ammo-physics'
 import { handleConnection } from './connection'
+import { showYouLoseText } from './gameEvents'
+import { add2dLayer, addCamera, addLight, addPlatform, addRenderer, addSphere, addStatusText } from './assets'
 // Flat
 
 console.log('Three.js version r' + THREE.REVISION)
@@ -20,37 +22,19 @@ const MainScene = () => {
   scene.background = new THREE.Color(0xf0f0f0)
 
   // camera
-  const camera = new THREE.PerspectiveCamera(50, width / height, 0.2, 100)
-  camera.position.set(10, 6, -25)
-  camera.lookAt(0, 0, 0)
-
-  // you can access Ammo directly if you want
-  // new Ammo.btVector3(1, 2, 3).y()
+  const camera = addCamera(width, height)
 
   // 2d camera/2d scene
-  const scene2d = new THREE.Scene()
-  const camera2d = new THREE.OrthographicCamera(0, width, height, 0, 1, 10000)
-  camera2d.position.setZ(100)
+  const { scene2d, camera2d } = add2dLayer(width, height)
 
   // renderer
-  const renderer = new THREE.WebGLRenderer()
-  renderer.setSize(width, height)
-  renderer.autoClear = false
-  document.body.appendChild(renderer.domElement)
-
-  // dpr
-  const DPR = window.devicePixelRatio
-  renderer.setPixelRatio(Math.min(2, DPR))
+  const renderer = addRenderer()
 
   // orbit controls
   new OrbitControls(camera, renderer.domElement)
 
   // light
-  scene.add(new THREE.HemisphereLight(0xffffbb, 0x080820, 1))
-  scene.add(new THREE.AmbientLight(0x666666))
-  const light = new THREE.DirectionalLight(0xdfebff, 1)
-  light.position.set(50, 200, 100)
-  light.position.multiplyScalar(1.3)
+  addLight(scene);
 
   // physics
   const physics = new AmmoPhysics(scene as any)
@@ -58,14 +42,9 @@ const MainScene = () => {
 
   const { factory } = physics
 
-  const box = factory.add.box({ x: 0, y: 0, z: 0, width: 20, height: 1, depth: 20 }, { lambert: { color: 'red', transparent: true, opacity: 0.5 } })
-  physics.add.existing(box, { mass: 0, collisionFlags: 2 })
-
-  const material = new THREE.MeshLambertMaterial({ color: 0xffff00 })
-  const sphere = new ExtendedMesh(new THREE.SphereBufferGeometry(1), material)
-  scene.add(sphere)
-  sphere.position.set(0, 8, 0)
-  physics.add.existing(sphere as any)
+  const youLostText = addStatusText(scene2d)
+  const box = addPlatform(factory, physics)
+  const sphere = addSphere(scene, physics)
 
   // clock
   const clock = new THREE.Clock()
@@ -78,7 +57,6 @@ const MainScene = () => {
 
   // loop
   const animate = () => {
-
     box.body.needUpdate = true // this is how you update kinematic bodies
     physics.update(clock.getDelta() * 1000)
     physics.updateDebugger()
@@ -91,8 +69,14 @@ const MainScene = () => {
     renderer.render(scene2d, camera2d)
 
     requestAnimationFrame(animate)
+
+    if (sphere.position.y < -20) {
+      showYouLoseText(scene2d)
+    }
+
   }
   requestAnimationFrame(animate)
+
 }
 
 // '/ammo' is the folder where all ammo file are
