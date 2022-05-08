@@ -10,7 +10,7 @@ const height = window.innerHeight;
 export function addStatusText(scene2d: THREE.Scene) {
   const youLostSprite = new TextSprite(purpleTextTexture)
   const connectedUserText = 'You lost!'
-  youLostSprite.name = 'youLostSprite'
+  youLostSprite.name = 'statusText'
   youLostSprite.visible = false
   youLostSprite.setText(connectedUserText)
   //render on top of everything
@@ -18,7 +18,6 @@ export function addStatusText(scene2d: THREE.Scene) {
   scene2d.add(youLostSprite)
   return youLostSprite;
 }
-
 
 
 export function add2dLayer(width: number, height: number) {

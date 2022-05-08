@@ -1,6 +1,6 @@
 export function getUniqueID() {
-    function s4() {
-        return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+    function fromOneToNine() { 
+        return Math.floor(Math.random() * (10));
     }
-    return s4() + s4() + '-' + s4();
-};
+    return `${fromOneToNine(0,9)}${fromOneToNine(0,9)}${fromOneToNine(0,9)}${fromOneToNine(0,9)}`;
+}
