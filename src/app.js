@@ -33,7 +33,7 @@ app.use((req, res) => {
     console.log('404', req.method, req.url);
 });
 
-const port = 3000;
+const port = 5000;
 
 export const server = app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
