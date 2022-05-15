@@ -1,6 +1,6 @@
-# Foobar
+#  4IT573_project
 
-Foobar is a Python library for dealing with word pluralization.
+ 4IT573_project is a simple app, which uses web sockets and let player use its android mobile device gyroscope like a controller. The gameplay is seen on other device (like desktop or other mobile device)
 
 ## Installation
 
