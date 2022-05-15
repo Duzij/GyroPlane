@@ -2,30 +2,39 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Active ws users</title>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- CSS for users with dark mode -->
+    <link rel="stylesheet" href="https://unpkg.com/awsm.css/dist/awsm_theme_big-stone.min.css" media="(prefers-color-scheme: dark)">
+
+    <!-- CSS for users without dark mode -->
+    <link rel="stylesheet" href="https://unpkg.com/awsm.css/dist/awsm_theme_pearl-lusta.min.css" media="(prefers-color-scheme: no-preference), (prefers-color-scheme: light)">
+
+    <title>Active ws users</title>
 </head>
 
 <body>
-  <h1>Active ws users</h1>
+    <main>
+        <h1>Active ws users</h1>
 
-  <div id="users">
-    <%- include('_users') %>
-  </div>
+        <div id="users">
+            <%- include('_users') %>
+        </div>
 
-  <script>
-    const ws = new WebSocket('ws://localhost:3000')
+        <script>
+            const ws = new WebSocket('ws://localhost:3000')
 
-    ws.addEventListener('message', (message) => {
-      const json = JSON.parse(message.data)
+            ws.addEventListener('message', (message) => {
+                const json = JSON.parse(message.data)
 
-      if (json.type === 'users') {
-        document.getElementById('users').innerHTML = json.html
-      }
-    })
-  </script>
+                if (json.type === 'users') {
+                    document.getElementById('users').innerHTML = json.html
+                }
+            })
+        </script>
+    </main>
 </body>
 
 </html>

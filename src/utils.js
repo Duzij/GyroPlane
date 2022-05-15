@@ -1,6 +1,13 @@
-export function getUniqueID() {
-    function fromOneToNine() { 
+export function getUniqueID(existingUserIds) {
+    function fromOneToNine() {
         return Math.floor(Math.random() * (10));
     }
-    return `${fromOneToNine(0,9)}${fromOneToNine(0,9)}${fromOneToNine(0,9)}${fromOneToNine(0,9)}`;
+
+    const result = `${fromOneToNine(0,9)}${fromOneToNine(0,9)}${fromOneToNine(0,9)}${fromOneToNine(0,9)}`;
+
+    if (existingUserIds.includes(result)) {
+        return getUniqueID();
+    } else {
+        return result
+    }
 }

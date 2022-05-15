@@ -4,7 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
 // physics
 import { PhysicsLoader } from 'enable3d'
-import { AmmoPhysics } from '@enable3d/ammo-physics'
+import { AmmoPhysics, ExtendedMesh } from '@enable3d/ammo-physics'
 import { handleConnection } from './connection'
 import { showYouLoseText } from './gameEvents'
 import { add2dLayer, addCamera, addLight, addPlatform, addRenderer, addSphere, addStatusText } from './assets'
@@ -23,6 +23,7 @@ const MainScene = () => {
 
   // camera
   const camera = addCamera(width, height)
+  camera.position.set(-27, 5, 0)
 
   // 2d camera/2d scene
   const { scene2d, camera2d } = add2dLayer(width, height)
@@ -50,10 +51,23 @@ const MainScene = () => {
   const clock = new THREE.Clock()
 
   let params = (new URL(location.toString())).searchParams;
-  let userId = params.get("userId");
-  if (userId) {
-    handleConnection(userId, scene2d, box)
+  let roomId = params.get("roomId");
+  if (roomId) {
+    handleConnection(roomId, scene2d, box)
   }
+
+  
+  document.getElementById('restart')?.addEventListener('click', () => {
+    const sphere = scene.getObjectByName('sphere') as ExtendedMesh
+    if(sphere)
+    {
+      physics.destroy(sphere);
+      scene.remove(sphere);
+      addSphere(scene, physics)
+    }
+    
+  });
+
 
   // loop
   const animate = () => {

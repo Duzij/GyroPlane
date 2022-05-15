@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+
+    <title>Room</title>
 </head>
 <style>
     html,
@@ -13,10 +14,29 @@
         padding: 0;
         overflow: hidden;
     }
+    
+    #restart {
+        position: absolute;
+        top: 2rem;
+        left: 2rem;
+        z-index: 1;
+        background-color: #FFFF00;
+        border: 2px solid #000000;
+        color: black;
+        padding: 15px 32px;
+        text-align: center;
+        text-transform: uppercase;
+        text-decoration: none;
+        display: inline-block;
+        margin: 4px 2px;
+        cursor: pointer;
+    }
 </style>
 
 <body>
-    
+    <main>
+        <button id="restart">Restart scene</button>
+    </main>
 </body>
 <script src="/bundle.js"></script>
 

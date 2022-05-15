@@ -63,6 +63,7 @@ export function addPlatform(factory: any, physics: any) {
 export function addSphere(scene: THREE.Scene, physics: any) {
   const material = new THREE.MeshLambertMaterial({ color: 0xffff00 })
   const sphere = new ExtendedMesh(new THREE.SphereBufferGeometry(1), material)
+  sphere.name = 'sphere'
   scene.add(sphere)
   sphere.position.set(0, 8, 0)
   physics.add.existing(sphere as any)

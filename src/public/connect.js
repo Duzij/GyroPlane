@@ -16,9 +16,8 @@ if (person == null || person == "") {
                 id: json.id,
                 name: person
             }));
-            document.getElementById('status').innerHTML = `Access platform with ${json.id} or <a href=${location.origin}/platform?userId=${json.id}'>this url</a>`;
 
-            document.getElementById('status').innerHTML += "<br /> Initing sensor...";
+            document.getElementById('status').innerHTML = `Access platform with room id ${json.id} or <a href=${location.origin}/platform?roomId=${json.id}>this url</a>`;
 
             initAbsoluteOrientationSensor(json.id, socket);
         }
@@ -65,8 +64,14 @@ function initAbsoluteOrientationSensor(id, socket) {
                     document.getElementById('sensor_status').innerHTML = `
                     <tr>
                         <td>${sensor.quaternion[0]}</td>
+                    </tr>
+                    <tr>
                         <td>${sensor.quaternion[1]}</td>
+                    </tr>
+                    <tr>
                         <td>${sensor.quaternion[2]}</td>
+                    </tr>
+                    <tr>
                         <td>${sensor.quaternion[3]}</td>
                     </tr>`;
 
@@ -84,7 +89,7 @@ function initAbsoluteOrientationSensor(id, socket) {
                 sensor.start();
 
             } else {
-                alert("No permissions to use AbsoluteOrientationSensor.");
+                alert("No permissions to use RelativeOrientationSensor.");
             }
         });
 }

@@ -2,11 +2,11 @@ import * as THREE from 'three'
 import { TextSprite } from '@enable3d/three-graphics/jsm/flat'
 import { textTexture } from './textures'
 
-export function handleConnection(userId: string, scene2d: THREE.Scene, box) {
+export function handleConnection(roomId: string, scene2d: THREE.Scene, box) {
   const debugTextSprite = new TextSprite(textTexture)
   const scale = 0.4
   debugTextSprite.setScale(scale)
-  const connectedUserText = 'User ' + userId + ' connected'
+  const connectedUserText = 'Room id ' + roomId + ' connected'
   debugTextSprite.setText(connectedUserText);
   debugTextSprite.setPosition(0 + (textTexture.width * scale) / 2 + 12, 50 - (textTexture.height * scale) / 2 - 48)
   scene2d.add(debugTextSprite);
@@ -20,7 +20,7 @@ export function handleConnection(userId: string, scene2d: THREE.Scene, box) {
       socket.send(JSON.stringify({
         type: "platform_connected",
         platformId: json.id,
-        userId: userId
+        userId: roomId
       }))
 
     }
@@ -34,18 +34,6 @@ export function handleConnection(userId: string, scene2d: THREE.Scene, box) {
         json.quaternion[2])
 
       box.quaternion.copy(quaternion)
-
-      debugTextSprite.setText(
-        `quaternion.x:${box.quaternion.x}\n` +
-        `quaternion.y:${box.quaternion.y}\n` +
-        `quaternion.z:${box.quaternion.z}\n` +
-        `quaternion.w:${box.quaternion.w}\n` +
-
-        `rotation.x:${box.rotation.x}\n` +
-        `rotation.y:${box.rotation.y}\n` +
-        `rotation.z:${box.rotation.z}\n`
-      );
-
 
     }
   })

@@ -11,7 +11,7 @@ export const createWebSocketServer = (server) => {
     const wss = new WebSocketServer({ server })
 
     wss.on('connection', function connection(ws, req) {
-        ws.id = getUniqueID();
+        ws.id = getUniqueID(Array.from(activeSessions).map(s => s.id));
         console.log('Opened connection: ', ws.id)
         connections.add(ws);
 
@@ -25,13 +25,14 @@ export const createWebSocketServer = (server) => {
         ws.addEventListener('message', (message) => {
             const json = JSON.parse(message.data)
 
-            console.log('Received message: ', json)
 
             if (json.type === "connected") {
+                console.log('Received message: ', json)
                 updateUserWithUsername(json, ws);
             }
 
             if (json.type === "platform_connected") {
+                console.log('Received message: ', json)
                 addToActiveSession(json.platformId, json.userId);
             }
 
