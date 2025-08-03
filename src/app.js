@@ -1,6 +1,8 @@
 import express from 'express';
 import { getAllActiveConnections } from './websockets.js';
-import path from 'path'
+import https from 'https';
+import fs from 'fs';
+import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(
@@ -8,6 +10,7 @@ const __filename = fileURLToPath(
 const __dirname = path.dirname(__filename);
 
 export const app = express();
+
 
 app.set('view engine', 'ejs');
 app.use('/', express.static(path.join(__dirname, 'public')))
@@ -33,8 +36,17 @@ app.use((req, res) => {
     console.log('404', req.method, req.url);
 });
 
-const port = 5000;
+const port = 5001;
 
-export const server = app.listen(port, () => {
-    console.log(`Server listening at http://localhost:${port}`);
+
+const options = {
+  key: fs.readFileSync(path.join(__dirname, 'localhost+2-key.pem')),
+  cert: fs.readFileSync(path.join(__dirname, 'localhost+2.pem'))
+};
+export const server = https.createServer(options, app);
+
+server.listen(port, () => {
+    console.log(`Server is running on https://localhost:${port}`);
 });
+
+export default app;

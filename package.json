@@ -11,7 +11,8 @@
         "lint": "npx eslint * --fix",
         "build": "npm run bundle",
         "bundle": "webpack --config webpack.config.cjs",
-        "webpack": "webpack --config webpack.config.cjs --watch"
+        "webpack": "webpack --config webpack.config.cjs --watch",
+        "setup-certs": "mkcert localhost 192.168.1.54 ::5001"
     },
     "repository": {
         "type": "git",

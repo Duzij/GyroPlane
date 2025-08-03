@@ -2,3 +2,5 @@ node_modules/
 *.sqlite
 .editorconfig
 .prettierrc
+src/localhost+2-key.pem
+src/localhost+2.pem

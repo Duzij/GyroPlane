@@ -28,8 +28,8 @@ export function add2dLayer(width: number, height: number) {
 }
 
 export function addCamera(width: number, height: number) {
-  const camera = new THREE.PerspectiveCamera(50, width / height, 0.2, 100)
-  camera.position.set(10, 6, -25)
+  const camera = new THREE.PerspectiveCamera(5, width / height, 0.2, 100)
+  camera.position.set(1, -6, 5)
   camera.lookAt(0, 0, 0)
   return camera
 }
@@ -55,17 +55,17 @@ export function addLight(scene: THREE.Scene) {
 }
 
 export function addPlatform(factory: any, physics: any) {
-  const box = factory.add.box({ x: 0, y: 0, z: 0, width: 20, height: 1, depth: 20 }, { lambert: { color: 'red', transparent: true, opacity: 0.5 } })
+  const box = factory.add.box({ x: 0, y: 0, z: 0, width: 5, height: 0.1, depth: 2 }, { lambert: { color: 'red', transparent: true, opacity: 0.5 } })
   physics.add.existing(box, { mass: 0, collisionFlags: 2 })
   return box
 }
 
 export function addSphere(scene: THREE.Scene, physics: any) {
   const material = new THREE.MeshLambertMaterial({ color: 0xffff00 })
-  const sphere = new ExtendedMesh(new THREE.SphereBufferGeometry(1), material)
+  const sphere = new ExtendedMesh(new THREE.SphereBufferGeometry(0.1), material)
   sphere.name = 'sphere'
   scene.add(sphere)
-  sphere.position.set(0, 8, 0)
+  sphere.position.set(0, 1, 0)
   physics.add.existing(sphere as any)
   return sphere
 }

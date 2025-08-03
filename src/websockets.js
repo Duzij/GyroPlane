@@ -8,6 +8,7 @@ const connections = new Set()
 const activeSessions = new Set();
 
 export const createWebSocketServer = (server) => {
+
     const wss = new WebSocketServer({ server })
 
     wss.on('connection', function connection(ws, req) {
