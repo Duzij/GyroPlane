@@ -61,7 +61,7 @@ function initAbsoluteOrientationSensor(id, socket) {
 
     sensor.onreading = () => {
 
-        const quaternion = preprocessBeforeSending(sensor.quaternion);
+        const quaternion = (sensor.quaternion);
 
         document.getElementById('sensor_data').innerHTML = `
                     <tr>
