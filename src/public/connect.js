@@ -58,7 +58,6 @@ function initAbsoluteOrientationSensor(id, socket) {
         referenceFrame: 'device'
     });
 
-
     sensor.onreading = () => {
 
         const quaternion = (sensor.quaternion);
@@ -77,8 +76,8 @@ function initAbsoluteOrientationSensor(id, socket) {
                         <td>${quaternion[3]}</td>
                     </tr>`;
 
-        if (socket && socket.readyState === WebSocket.OPEN &&
-            isNotSameAsPreviousReading(quaternion, sensor.previousQuaternion)
+        if (socket && socket.readyState === WebSocket.OPEN 
+            // isNotSameAsPreviousReading(quaternion, sensor.previousQuaternion
         ) {
             socket.send(JSON.stringify({
                 type: "sensor",
@@ -102,4 +101,29 @@ function initAbsoluteOrientationSensor(id, socket) {
     };
 
     sensor.start();
+}
+
+function preprocessBeforeSending(quaternion) {
+    // Convert from phone space to Three.js space
+    // This might need adjustment based on your phone's orientation
+    return [
+        -quaternion[0], // x
+        -quaternion[2], // y
+        quaternion[1],  // z
+        quaternion[3]   // w
+    ];
+}
+
+function isNotSameAsPreviousReading(current, previous) {
+    if (!previous) return true;
+
+    // Increase threshold to reduce noise
+    const threshold = 0.03; // Increased from 0.01
+    
+    // Apply low-pass filter
+    const alpha = 0.8; // Smoothing factor (0-1)
+    return Math.abs((current[0] * alpha + previous[0] * (1 - alpha)) - previous[0]) > threshold ||
+           Math.abs((current[1] * alpha + previous[1] * (1 - alpha)) - previous[1]) > threshold ||
+           Math.abs((current[2] * alpha + previous[2] * (1 - alpha)) - previous[2]) > threshold ||
+           Math.abs((current[3] * alpha + previous[3] * (1 - alpha)) - previous[3]) > threshold;
 }
