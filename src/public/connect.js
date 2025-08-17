@@ -1,129 +1,33 @@
-try {
-    const sensor = new RelativeOrientationSensor({
-        frequency: 60,
-        referenceFrame: 'device'
-    });
-} catch (error) {
-    document.getElementById('sensor_status').innerHTML = "RelativeOrientationSensor is not supported by your browser.";
-    throw new Error("RelativeOrientationSensor is not supported by your browser.");
-}
+/*
+ * ATTENTION: The "eval" devtool has been used (maybe by default in mode: "development").
+ * This devtool is neither made for production nor for readable output files.
+ * It uses "eval()" calls to create a separate source file in the browser devtools.
+ * If you are trying to read the output file, select a different devtool (https://webpack.js.org/configuration/devtool/)
+ * or disable the default devtool with "devtool: false".
+ * If you are looking for production-ready output files, see mode: "production" (https://webpack.js.org/configuration/mode/).
+ */
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ({
 
-const permissions = await Promise.all([navigator.permissions.query({
-    name: "accelerometer"
-}),
-navigator.permissions.query({
-    name: "magnetometer"
-}),
-navigator.permissions.query({
-    name: "gyroscope"
-})
-]);
+/***/ "./src/scripts/connect.ts":
+/*!********************************!*\
+  !*** ./src/scripts/connect.ts ***!
+  \********************************/
+/***/ (function(__unused_webpack_module, exports) {
 
-const socket = new WebSocket(location.origin.replace(/^http/, 'ws'));
+eval("{\nvar __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {\n    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }\n    return new (P || (P = Promise))(function (resolve, reject) {\n        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }\n        function rejected(value) { try { step(generator[\"throw\"](value)); } catch (e) { reject(e); } }\n        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }\n        step((generator = generator.apply(thisArg, _arguments || [])).next());\n    });\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.getElementByIdOrThrow = void 0;\nfunction getElementByIdOrThrow(id) {\n    const element = document.getElementById(id);\n    if (!element) {\n        throw new Error(`Element with id '${id}' not found`);\n    }\n    return element;\n}\nexports.getElementByIdOrThrow = getElementByIdOrThrow;\nfunction requestPermissions() {\n    return __awaiter(this, void 0, void 0, function* () {\n        return yield Promise.all([\n            navigator.permissions.query({\n                name: \"accelerometer\",\n            }),\n            navigator.permissions.query({\n                name: \"magnetometer\",\n            }),\n            navigator.permissions.query({\n                name: \"gyroscope\",\n            }),\n        ]);\n    });\n}\ntry {\n    const sensor = new RelativeOrientationSensor({\n        frequency: 60,\n        referenceFrame: 'device'\n    });\n}\ncatch (error) {\n    const sensorStatus = getElementByIdOrThrow('sensor_status');\n    sensorStatus.innerHTML = \"RelativeOrientationSensor is not supported by your browser.\";\n    throw new Error(\"RelativeOrientationSensor is not supported by your browser.\");\n}\n(() => __awaiter(void 0, void 0, void 0, function* () {\n    const permissions = yield requestPermissions();\n    const socket = new WebSocket(location.origin.replace(/^http/, 'ws'));\n    socket.addEventListener('message', (message) => {\n        const json = JSON.parse(message.data);\n        if (json.type === \"connected\") {\n            const status = getElementByIdOrThrow('status');\n            status.innerHTML = `Connected with id: ${json.id}`;\n            socket.send(JSON.stringify({\n                type: \"connected\",\n                id: json.id\n            }));\n            status.innerHTML = `Access platform with room id ${json.id} or <a href=${location.origin}/platform?roomId=${json.id}>this url</a>`;\n            initAbsoluteOrientationSensor(json.id, socket);\n        }\n        if (json.type === \"platform_disconnected\") {\n            const status = getElementByIdOrThrow('status');\n            status.innerHTML += \"Platform disconnected. Reload the page to try again.\";\n        }\n    });\n    socket.onerror = function (error) {\n        alert(`[Error] ${error.message}`);\n        const status = getElementByIdOrThrow('status');\n        status.innerHTML = \"Disconnected\";\n    };\n}))();\nfunction initAbsoluteOrientationSensor(id, socket) {\n    requestPermissions().then(permissions => {\n        if (permissions.some(permission => permission.state !== \"granted\")) {\n            const status = getElementByIdOrThrow('status');\n            status.innerHTML = \"No permissions to use RelativeOrientationSensor.\";\n            return;\n        }\n        const sensor = new RelativeOrientationSensor({\n            frequency: 60,\n            referenceFrame: 'device'\n        });\n        sensor.onreading = () => {\n            var _a;\n            const quaternion = (_a = sensor.quaternion) !== null && _a !== void 0 ? _a : [];\n            const sensorData = getElementByIdOrThrow('sensor_data');\n            sensorData.innerHTML = `\n                <tr>\n                    <td>${quaternion[0]}</td>\n                </tr>\n                <tr>\n                    <td>${quaternion[1]}</td>\n                </tr>\n                <tr>\n                    <td>${quaternion[2]}</td>\n                </tr>\n                <tr>\n                    <td>${quaternion[3]}</td>\n                </tr>`;\n            if (socket && socket.readyState === WebSocket.OPEN) {\n                socket.send(JSON.stringify({\n                    type: \"sensor\",\n                    id,\n                    quaternion: sensor.quaternion\n                }));\n            }\n        };\n        sensor.onerror = (event) => {\n            if (event.error.name === 'NotReadableError') {\n                if (socket && socket.readyState === WebSocket.OPEN) {\n                    socket.close(1000, \"Sensor error occurred\");\n                    console.log('WebSocket connection closed due to sensor error');\n                }\n                sensor.stop();\n                const status = getElementByIdOrThrow('status');\n                status.innerHTML += \"Sensor is not available.\";\n            }\n            else {\n                const status = getElementByIdOrThrow('status');\n                status.innerHTML += `Sensor error. ${event.error.message}`;\n            }\n        };\n        sensor.start();\n    });\n}\nfunction preprocessBeforeSending(quaternion) {\n    // Convert from phone space to Three.js space\n    // This might need adjustment based on your phone's orientation\n    return [\n        -quaternion[0],\n        -quaternion[2],\n        quaternion[1],\n        quaternion[3] // w\n    ];\n}\nfunction isNotSameAsPreviousReading(current, previous) {\n    if (!previous)\n        return true;\n    // Increase threshold to reduce noise\n    const threshold = 0.03; // Increased from 0.01\n    // Apply low-pass filter\n    const alpha = 0.8; // Smoothing factor (0-1)\n    return Math.abs((current[0] * alpha + previous[0] * (1 - alpha)) - previous[0]) > threshold ||\n        Math.abs((current[1] * alpha + previous[1] * (1 - alpha)) - previous[1]) > threshold ||\n        Math.abs((current[2] * alpha + previous[2] * (1 - alpha)) - previous[2]) > threshold ||\n        Math.abs((current[3] * alpha + previous[3] * (1 - alpha)) - previous[3]) > threshold;\n}\n\n\n//# sourceURL=webpack://gyroscope/./src/scripts/connect.ts?\n}");
 
-socket.addEventListener('message', (message) => {
-    const json = JSON.parse(message.data)
+/***/ })
 
-    if (json.type === "connected") {
-        document.getElementById('status').innerHTML = "Connected with id: " + json.id;
-        socket.send(JSON.stringify({
-            type: "connected",
-            id: json.id
-        }));
-
-        document.getElementById('status').innerHTML = `Access platform with room id ${json.id} or <a href=${location.origin}/platform?roomId=${json.id}>this url</a>`;
-
-        initAbsoluteOrientationSensor(json.id, socket);
-    }
-
-    if (json.type === "platform_disconnected") {
-        document.getElementById('status').innerHTML += "Platform disconnected. Reload the page to try again.";
-    }
-})
-
-socket.onerror = function (error) {
-    alert(`[Error] ${error.message}`);
-    document.getElementById('status').innerHTML = "Disconnected";
-};
-
-function initAbsoluteOrientationSensor(id, socket) {
-
-    if (permissions.some(permission => permission.state !== "granted")) {
-        document.getElementById('status').innerHTML = "No permissions to use RelativeOrientationSensor.";
-        return;
-    }
-
-    const sensor = new RelativeOrientationSensor({
-        frequency: 60,
-        referenceFrame: 'device'
-    });
-
-    sensor.onreading = () => {
-
-        const quaternion = (sensor.quaternion);
-
-        document.getElementById('sensor_data').innerHTML = `
-                    <tr>
-                        <td>${quaternion[0]}</td>
-                    </tr>
-                    <tr>
-                        <td>${quaternion[1]}</td>
-                    </tr>
-                    <tr>
-                        <td>${quaternion[2]}</td>
-                    </tr>
-                    <tr>
-                        <td>${quaternion[3]}</td>
-                    </tr>`;
-
-        if (socket && socket.readyState === WebSocket.OPEN 
-            // isNotSameAsPreviousReading(quaternion, sensor.previousQuaternion
-        ) {
-            socket.send(JSON.stringify({
-                type: "sensor",
-                id,
-                quaternion
-            }));
-        }
-    };
-
-    sensor.onerror = (event) => {
-        if (event.error.name == 'NotReadableError') {
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.close(1000, "Sensor error occurred");
-                console.log('WebSocket connection closed due to sensor error');
-            }
-            sensor.stop();
-            document.getElementById('status').innerHTML += "Sensor is not available.";
-        } else {
-            document.getElementById('status').innerHTML += "Sensor error. " + error.message;
-        }
-    };
-
-    sensor.start();
-}
-
-function preprocessBeforeSending(quaternion) {
-    // Convert from phone space to Three.js space
-    // This might need adjustment based on your phone's orientation
-    return [
-        -quaternion[0], // x
-        -quaternion[2], // y
-        quaternion[1],  // z
-        quaternion[3]   // w
-    ];
-}
-
-function isNotSameAsPreviousReading(current, previous) {
-    if (!previous) return true;
-
-    // Increase threshold to reduce noise
-    const threshold = 0.03; // Increased from 0.01
-    
-    // Apply low-pass filter
-    const alpha = 0.8; // Smoothing factor (0-1)
-    return Math.abs((current[0] * alpha + previous[0] * (1 - alpha)) - previous[0]) > threshold ||
-           Math.abs((current[1] * alpha + previous[1] * (1 - alpha)) - previous[1]) > threshold ||
-           Math.abs((current[2] * alpha + previous[2] * (1 - alpha)) - previous[2]) > threshold ||
-           Math.abs((current[3] * alpha + previous[3] * (1 - alpha)) - previous[3]) > threshold;
-}
+/******/ 	});
+/************************************************************************/
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = {};
+/******/ 	__webpack_modules__["./src/scripts/connect.ts"](0, __webpack_exports__);
+/******/ 	
+/******/ })()
+;

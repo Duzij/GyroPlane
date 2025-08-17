@@ -1,11 +1,14 @@
 const path = require('path');
 const TerserPlugin = require('terser-webpack-plugin');
+const isDevelopment = process.env.NODE_ENV !== 'production';
 
 module.exports = {
-  mode: 'development',
+  mode: isDevelopment ? 'development' : 'production',
   stats: 'errors-warnings',
-  entry: './src/scripts/index.ts',
-  devtool: 'inline-source-map',
+  entry: {
+    bundle: './src/scripts/index.ts',
+    connect: './src/scripts/connect.ts',
+  },
   module: {
     rules: [{
       test: /\.tsx?$/,
@@ -17,8 +20,9 @@ module.exports = {
     extensions: ['.tsx', '.ts', '.js'],
   },
   output: {
-    filename: 'bundle.js',
+    filename: '[name].js',
     path: path.resolve(__dirname, 'src/public'),
+    clean: false,
   },
   optimization: {
     minimizer: [

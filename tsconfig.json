@@ -2,12 +2,16 @@
   "compilerOptions": {
     "target": "ES2015",
     "module": "commonjs",
-
+    "lib": ["ES2015", "DOM"],
     "strict": true,
     "noImplicitAny": false,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "types": ["w3c-generic-sensor"]
   },
-  "include": ["src/scripts/**/*"],
+  "include": [
+    "src/scripts/**/*",
+    "global.d.ts"
+  ],
   "exclude": ["node_modules", "**/*.spec.ts"]
 }

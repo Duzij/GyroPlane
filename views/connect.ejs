@@ -1,38 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <!-- CSS for users with dark mode -->
+        <link
+            rel="stylesheet"
+            href="https://unpkg.com/awsm.css/dist/awsm_theme_big-stone.min.css"
+            media="(prefers-color-scheme: dark)"
+        >
 
-    <!-- CSS for users with dark mode -->
-    <link rel="stylesheet" href="https://unpkg.com/awsm.css/dist/awsm_theme_big-stone.min.css" media="(prefers-color-scheme: dark)">
+        <!-- CSS for users without dark mode -->
+        <link
+            rel="stylesheet"
+            href="https://unpkg.com/awsm.css/dist/awsm_theme_pearl-lusta.min.css"
+            media="(prefers-color-scheme: no-preference), (prefers-color-scheme: light)"
+        >
 
-    <!-- CSS for users without dark mode -->
-    <link rel="stylesheet" href="https://unpkg.com/awsm.css/dist/awsm_theme_pearl-lusta.min.css" media="(prefers-color-scheme: no-preference), (prefers-color-scheme: light)">
+        <title>Connect with your mobile device</title>
+    </head>
 
-    <title>Connect with your mobile device</title>
-</head>
+    <body>
+        <h4>Connect to room</h4>
 
-<body>
-    <h1>Connect to room</h1>
+        <h5 id="status"></h5>
+        <h5 id="sensor_status"></h5>
+        <table>
+            <thead>
+                <th>data</th>
+            </thead>
+            <tbody id="sensor_data">
+                <tr>
+                    <td>x</td>
+                    <td id="sensor_data_x"></td>
+                </tr>
+                <tr>
+                    <td>y</td>
+                    <td id="sensor_data_y"></td>
+                </tr>
+                <tr>
+                    <td>z</td>
+                    <td id="sensor_data_z"></td>
+                </tr>
+                <tr>
+                    <td>w</td>
+                    <td id="sensor_data_w"></td>
+                </tr>
+            </tbody>
+            <tbody id="accelerometer_data"></tbody>
+        </table>
 
-    <h1 id="status"></h1>
-    <h2 id="sensor_status"></h2>
-    <table>
-        <thead>
-            <tr>
-                <th>x,y,z,w</th>
-            </tr>
-        </thead>
-        <tbody id="sensor_data">
-        </tbody>
-        <tbody id="accelerometer_data">
-        </tbody>
-    </table>
-
-    <script type="module" src="/connect.js"></script>
-</body>
-
+        <script type="module" src="/connect.js"></script>
+    </body>
 </html>
