@@ -4,3 +4,4 @@ node_modules/
 .prettierrc
 src/localhost+2-key.pem
 src/localhost+2.pem
+.DS_Store
