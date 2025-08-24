@@ -89,86 +89,117 @@ function initAbsoluteOrientationSensor(id: string, socket: WebSocket): void {
             return;
         }
 
-        const sensor = new RelativeOrientationSensor({
-            frequency: 60,
-            referenceFrame: "device",
-        });
+        OrientationSensor(socket, id);
 
-        document.getElementById("set_initial_position")?.addEventListener(
-            "click",
-            () => {
-                if (sensor.quaternion) {
-                    sensorQuaternionOffset = [...sensor.quaternion];
-                }
-            },
-        );
-
-        sensor.onreading = () => {
-            let quaternion: number[] = sensor.quaternion ?? [];
-
-            // Apply offset if it exists
-            if (sensorQuaternionOffset) {
-                updateTable(quaternion, "raw");
-
-                // Convert arrays to Three.js Quaternions for easier math
-                const currentQuat = new Quaternion(
-                    quaternion[0],
-                    quaternion[1],
-                    quaternion[2],
-                    quaternion[3],
-                );
-                const offsetQuat = new Quaternion(
-                    sensorQuaternionOffset[0],
-                    sensorQuaternionOffset[1],
-                    sensorQuaternionOffset[2],
-                    sensorQuaternionOffset[3],
-                ).invert();
-
-                // Apply the offset
-                currentQuat.premultiply(offsetQuat);
-
-                // Convert back to array
-                quaternion = [
-                    currentQuat.x,
-                    currentQuat.y,
-                    currentQuat.z,
-                    currentQuat.w,
-                ];
-
-                updateTable(quaternion, "adjusted");
-            }
-            else{
-                updateTable(quaternion, "raw");
-            }
-
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({
-                    type: "sensor",
-                    id,
-                    quaternion: quaternion,
-                }));
-            }
-        };
-
-        sensor.onerror = (event: SensorErrorEvent) => {
-            if (event.error.name === "NotReadableError") {
-                if (socket && socket.readyState === WebSocket.OPEN) {
-                    socket.close(1000, "Sensor error occurred");
-                    console.log(
-                        "WebSocket connection closed due to sensor error",
-                    );
-                }
-                sensor.stop();
-                const status = getElementByIdOrThrow<HTMLElement>("status");
-                status.innerHTML += "Sensor is not available.";
-            } else {
-                const status = getElementByIdOrThrow<HTMLElement>("status");
-                status.innerHTML += `Sensor error. ${event.error.message}`;
-            }
-        };
-
-        sensor.start();
+        AccelerometerSensor(socket, id);
     });
+}
+
+function AccelerometerSensor(socket: WebSocket, id: string) {
+    const accelerometer = new Accelerometer({ frequency: 60 });
+    accelerometer.onreading = () => {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            const message = JSON.stringify({
+                type: "sensor_accelerometer",
+                id,
+                acceleration: {
+                    x: accelerometer.x,
+                    y: accelerometer.y,
+                    z: accelerometer.z,
+                },
+            });
+            // console.log("Sending WebSocket message:", message);
+            socket.send(message);
+        }
+    };
+
+    accelerometer.onerror = (event) => {
+        console.error("Accelerometer error:", event);
+    };
+
+    accelerometer.start();
+}
+
+function OrientationSensor(socket: WebSocket, id: string) {
+    const sensor = new RelativeOrientationSensor({
+        frequency: 60,
+        referenceFrame: "device",
+    });
+
+    document.getElementById("set_initial_position")?.addEventListener(
+        "click",
+        () => {
+            if (sensor.quaternion) {
+                sensorQuaternionOffset = [...sensor.quaternion];
+            }
+        }
+    );
+
+    sensor.onreading = () => {
+        let quaternion: number[] = sensor.quaternion ?? [];
+
+        // Apply offset if it exists
+        if (sensorQuaternionOffset) {
+            updateTable(quaternion, "raw");
+
+            // Convert arrays to Three.js Quaternions for easier math
+            const currentQuat = new Quaternion(
+                quaternion[0],
+                quaternion[1],
+                quaternion[2],
+                quaternion[3]
+            );
+            const offsetQuat = new Quaternion(
+                sensorQuaternionOffset[0],
+                sensorQuaternionOffset[1],
+                sensorQuaternionOffset[2],
+                sensorQuaternionOffset[3]
+            ).invert();
+
+            // Apply the offset
+            currentQuat.premultiply(offsetQuat);
+
+            // Convert back to array
+            quaternion = [
+                currentQuat.x,
+                currentQuat.y,
+                currentQuat.z,
+                currentQuat.w,
+            ];
+
+            updateTable(quaternion, "adjusted");
+        }
+        else {
+            updateTable(quaternion, "raw");
+        }
+
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({
+                type: "sensor",
+                id,
+                quaternion: quaternion,
+            }));
+        }
+    };
+
+    sensor.onerror = (event: SensorErrorEvent) => {
+        if (event.error.name === "NotReadableError") {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.close(1000, "Sensor error occurred");
+                console.log(
+                    "WebSocket connection closed due to sensor error"
+                );
+            }
+            sensor.stop();
+            const status = getElementByIdOrThrow<HTMLElement>("status");
+            status.innerHTML += "Sensor is not available.";
+        } else {
+            const status = getElementByIdOrThrow<HTMLElement>("status");
+            status.innerHTML += `Sensor error. ${event.error.message}`;
+        }
+    };
+
+    sensor.start();
 }
 
 function updateTable(quaternion: number[], tableIdPostfix: string) {
@@ -180,17 +211,6 @@ function updateTable(quaternion: number[], tableIdPostfix: string) {
         .toString();
     getElementByIdOrThrow(`sensor_data_w_${tableIdPostfix}`).innerHTML = quaternion[3]
         .toString();
-}
-
-function preprocessBeforeSending(quaternion: number[]): number[] {
-    // Convert from phone space to Three.js space
-    // This might need adjustment based on your phone's orientation
-    return [
-        -quaternion[0], // x
-        -quaternion[2], // y
-        quaternion[1], // z
-        quaternion[3], // w
-    ];
 }
 
 function isNotSameAsPreviousReading(

@@ -1,33 +1,26 @@
 import * as THREE from "three";
-import { TextSprite } from "@enable3d/three-graphics/jsm/flat";
-import { textTexture } from "./textures";
+import { ExtendedMesh } from "@enable3d/ammo-physics";
 
 enum SensorMessageType {
   CONNECTED = "connected",
   DISCONNECTED = "disconnected",
   SENSOR = "sensor",
-  SET_DEFAULT_POSITION = "sensor_set_default_position",
+  SENSOR_ACCELEROMETER = "sensor_accelerometer",
 }
 
-export function handleConnection(roomId: string, scene2d: THREE.Scene, platform: THREE.Mesh) {
-  const debugTextSprite = new TextSprite(textTexture);
-  const scale = 0.4;
-  debugTextSprite.setScale(scale);
-  const connectedUserText = "Room id " + roomId + " connected";
-  debugTextSprite.setText(connectedUserText);
-  debugTextSprite.setPosition(
-    0 + (textTexture.width * scale) / 2 + 12,
-    50 - (textTexture.height * scale) / 2 - 48,
-  );
-  scene2d.add(debugTextSprite);
-
+export function handleConnection(
+  roomId: string,
+  scene2d: THREE.Scene,
+  platform: ExtendedMesh,
+) {
   const socket = new WebSocket(location.origin.replace(/^http/, "ws"));
+
+  console.log(platform.hasBody);
+  console.log(platform.body);
 
   socket.addEventListener("message", (message) => {
     const json = JSON.parse(message.data);
-
     platform.matrixAutoUpdate = false;
-
     switch (json.type) {
       case SensorMessageType.CONNECTED:
         socket.send(JSON.stringify({
@@ -48,20 +41,24 @@ export function handleConnection(roomId: string, scene2d: THREE.Scene, platform:
           -json.quaternion[1],
           json.quaternion[3],
         );
-
         platform.quaternion.copy(quaternion);
-        platform.matrix.makeRotationFromQuaternion(quaternion);
-        platform.matrixAutoUpdate = false;
         break;
 
-      case SensorMessageType.SET_DEFAULT_POSITION:
-        const connectionId = json.id;
-        const orientation = new THREE.Quaternion(
-          json.orientation[0],
-          json.orientation[1],
-          json.orientation[2],
-          json.orientation[3],
+      case SensorMessageType.SENSOR_ACCELEROMETER:
+        const acceleration = new THREE.Vector3(
+          json.acceleration.x,
+          json.acceleration.y,
+          json.acceleration.z,
         );
+        
+        // Apply a threshold to prevent drift from small movements
+        const threshold = 0.1;
+        if (Math.abs(acceleration.y) > threshold) {
+          platform.position.setY(platform.position.y + acceleration.y * 0.1); // Scale factor to control movement sensitivity
+        }
+        
+        // Update the matrix with both position and rotation
+        platform.updateMatrix();
         break;
 
       default:

@@ -26,7 +26,6 @@ export const createWebSocketServer = (server) => {
         ws.addEventListener('message', (message) => {
             const json = JSON.parse(message.data)
 
-
             if (json.type === "connected") {
                 console.log('Received message: ', json)
                 updateUserWithUsername(json, ws);
@@ -38,7 +37,11 @@ export const createWebSocketServer = (server) => {
             }
 
             if (json.type === "sensor") {
-                updateSpecificPlatformWithSensorData(json, ws);
+                updateSpecificPlatformWithSensorData(json.id, message.data, ws);
+            }
+
+            if (json.type === "sensor_accelerometer") {
+                updateSpecificPlatformWithSensorData(json.id, message.data, ws);
             }
         })
     });
@@ -71,24 +74,17 @@ const addToActiveSession = (platformId, userId) => {
     console.log(`Added to active session: platformId:${platformId}, userId:${userId}`);
 }
 
-const updateSpecificPlatformWithSensorData = (message, ws) => {
-
+const updateSpecificPlatformWithSensorData = (id, data, ws) => {
     for (let activeSession of activeSessions) {
-        if (activeSession.userId === message.id) {
+        if (activeSession.userId === id) {
             const platformConnection = getConnectionByConnectionId(activeSession.platformId);
             if (platformConnection) {
-                const sentMessage = {
-                    type: 'sensor',
-                    quaternion: message.quaternion,
-                };
-                platformConnection.send(JSON.stringify(sentMessage));
-                break;
+                platformConnection.send(data);
             } else {
                 activeSessions.delete(activeSession);
                 ws.send(JSON.stringify({
                     type: 'platform_disconnected'
                 }));
-                break;
             }
         }
     }
@@ -107,7 +103,7 @@ export const getConnectionByConnectionId = (id) => {
     }
 }
 
-export const sendUsersToAllConnections = async() => {
+export const sendUsersToAllConnections = async () => {
     const users = getAllActiveConnections();
 
     const html = await ejs.renderFile('views/_users.ejs', {

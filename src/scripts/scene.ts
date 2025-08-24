@@ -96,7 +96,6 @@ export const MainScene = (canvas: HTMLCanvasElement) => {
     }
 
     requestAnimationFrame(animate);
-    // updatePlatformData(platform.quaternion);
 
     if (sphere.position.y < -20) {
       showYouLoseText(scene2d);
