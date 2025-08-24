@@ -90,25 +90,58 @@ function initAbsoluteOrientationSensor(id: string, socket: WebSocket): void {
         }
 
         OrientationSensor(socket, id);
-
         AccelerometerSensor(socket, id);
     });
 }
 
 function AccelerometerSensor(socket: WebSocket, id: string) {
     const accelerometer = new Accelerometer({ frequency: 60 });
+    let lastX = 0, lastY = 0, lastZ = 0;
+    const gravity = 9.81;
+    
     accelerometer.onreading = () => {
         if (socket && socket.readyState === WebSocket.OPEN) {
+            // Apply low-pass filter to separate gravity from linear acceleration
+            const alpha = 0.7; // Smoothing factor
+            
+            // Update gravity component using low-pass filter
+            lastX = alpha * lastX + (1 - alpha) * (accelerometer.x ?? 0);
+            lastY = alpha * lastY + (1 - alpha) * (accelerometer.y ?? 0);
+            lastZ = alpha * lastZ + (1 - alpha) * (accelerometer.z ?? 0);
+            
+            // Remove gravity component to get linear acceleration
+            const linearAccX = (accelerometer.x ?? 0) - lastX;
+            const linearAccY = (accelerometer.y ?? 0) - lastY;
+            const linearAccZ = (accelerometer.z ?? 0) - lastZ;
+            
             const message = JSON.stringify({
                 type: "sensor_accelerometer",
                 id,
                 acceleration: {
+                    x: linearAccX,
+                    y: linearAccY,
+                    z: linearAccZ,
+                },
+                rawAcceleration: {
                     x: accelerometer.x,
                     y: accelerometer.y,
                     z: accelerometer.z,
-                },
+                }
             });
-            // console.log("Sending WebSocket message:", message);
+            
+            // Update UI with both raw and linear acceleration
+            if (accelerometer.x !== undefined) {
+                getElementByIdOrThrow(`accelerometer_data_x_raw`).innerHTML =
+                    `Raw: ${accelerometer.x.toFixed(2)}, Linear: ${linearAccX.toFixed(2)}`;
+            }
+            if (accelerometer.y !== undefined) {
+                getElementByIdOrThrow(`accelerometer_data_y_raw`).innerHTML =
+                    `Raw: ${accelerometer.y.toFixed(2)}, Linear: ${linearAccY.toFixed(2)}`;
+            }
+            if (accelerometer.z !== undefined) {
+                getElementByIdOrThrow(`accelerometer_data_z_raw`).innerHTML =
+                    `Raw: ${accelerometer.z.toFixed(2)}, Linear: ${linearAccZ.toFixed(2)}`;
+            }
             socket.send(message);
         }
     };
@@ -132,46 +165,37 @@ function OrientationSensor(socket: WebSocket, id: string) {
             if (sensor.quaternion) {
                 sensorQuaternionOffset = [...sensor.quaternion];
             }
-        }
+        },
     );
 
     sensor.onreading = () => {
         let quaternion: number[] = sensor.quaternion ?? [];
 
-        // Apply offset if it exists
         if (sensorQuaternionOffset) {
-            updateTable(quaternion, "raw");
-
-            // Convert arrays to Three.js Quaternions for easier math
             const currentQuat = new Quaternion(
                 quaternion[0],
                 quaternion[1],
                 quaternion[2],
-                quaternion[3]
+                quaternion[3],
             );
             const offsetQuat = new Quaternion(
                 sensorQuaternionOffset[0],
                 sensorQuaternionOffset[1],
                 sensorQuaternionOffset[2],
-                sensorQuaternionOffset[3]
+                sensorQuaternionOffset[3],
             ).invert();
 
             // Apply the offset
             currentQuat.premultiply(offsetQuat);
 
-            // Convert back to array
             quaternion = [
                 currentQuat.x,
                 currentQuat.y,
                 currentQuat.z,
                 currentQuat.w,
             ];
-
-            updateTable(quaternion, "adjusted");
         }
-        else {
-            updateTable(quaternion, "raw");
-        }
+        updateQuaternionTable(quaternion, "adjusted");
 
         if (socket && socket.readyState === WebSocket.OPEN) {
             socket.send(JSON.stringify({
@@ -187,7 +211,7 @@ function OrientationSensor(socket: WebSocket, id: string) {
             if (socket && socket.readyState === WebSocket.OPEN) {
                 socket.close(1000, "Sensor error occurred");
                 console.log(
-                    "WebSocket connection closed due to sensor error"
+                    "WebSocket connection closed due to sensor error",
                 );
             }
             sensor.stop();
@@ -202,15 +226,19 @@ function OrientationSensor(socket: WebSocket, id: string) {
     sensor.start();
 }
 
-function updateTable(quaternion: number[], tableIdPostfix: string) {
-    getElementByIdOrThrow(`sensor_data_x_${tableIdPostfix}`).innerHTML = quaternion[0]
-        .toString();
-    getElementByIdOrThrow(`sensor_data_y_${tableIdPostfix}`).innerHTML = quaternion[1]
-        .toString();
-    getElementByIdOrThrow(`sensor_data_z_${tableIdPostfix}`).innerHTML = quaternion[2]
-        .toString();
-    getElementByIdOrThrow(`sensor_data_w_${tableIdPostfix}`).innerHTML = quaternion[3]
-        .toString();
+function updateQuaternionTable(quaternion: number[], tableIdPostfix: string) {
+    getElementByIdOrThrow(`sensor_data_x_${tableIdPostfix}`).innerHTML =
+        quaternion[0]
+            .toString();
+    getElementByIdOrThrow(`sensor_data_y_${tableIdPostfix}`).innerHTML =
+        quaternion[1]
+            .toString();
+    getElementByIdOrThrow(`sensor_data_z_${tableIdPostfix}`).innerHTML =
+        quaternion[2]
+            .toString();
+    getElementByIdOrThrow(`sensor_data_w_${tableIdPostfix}`).innerHTML =
+        quaternion[3]
+            .toString();
 }
 
 function isNotSameAsPreviousReading(

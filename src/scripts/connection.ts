@@ -15,9 +15,6 @@ export function handleConnection(
 ) {
   const socket = new WebSocket(location.origin.replace(/^http/, "ws"));
 
-  console.log(platform.hasBody);
-  console.log(platform.body);
-
   socket.addEventListener("message", (message) => {
     const json = JSON.parse(message.data);
     platform.matrixAutoUpdate = false;
@@ -45,24 +42,27 @@ export function handleConnection(
         break;
 
       case SensorMessageType.SENSOR_ACCELEROMETER:
+        // We're now using the linear acceleration which has gravity removed
         const acceleration = new THREE.Vector3(
           json.acceleration.x,
           json.acceleration.y,
           json.acceleration.z,
         );
-        
+
         // Apply a threshold to prevent drift from small movements
-        const threshold = 0.1;
-        if (Math.abs(acceleration.y) > threshold) {
-          platform.position.setY(platform.position.y + acceleration.y * 0.1); // Scale factor to control movement sensitivity
-        }
+        const threshold = 0.45;
+        const scaleFactor = 0.05; // Reduced scale factor since we're using linear acceleration
         
-        // Update the matrix with both position and rotation
-        platform.updateMatrix();
+        if (Math.abs(acceleration.y) > threshold) {
+          platform.position.setX(platform.position.x + acceleration.x * scaleFactor);
+          platform.position.setY(platform.position.y + acceleration.y * scaleFactor);
+          platform.position.setZ(platform.position.z + acceleration.z * scaleFactor);
+        }
         break;
 
       default:
         break;
     }
+    platform.updateMatrix();
   });
 }
