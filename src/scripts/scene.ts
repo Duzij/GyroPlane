@@ -9,6 +9,7 @@ import { handleConnection } from "./connection";
 import { showYouLoseText } from "./gameEvents";
 import {
   add2dLayer,
+  addAxisHelper,
   addCamera,
   addLight,
   addPlatform,
@@ -16,11 +17,12 @@ import {
   addSphere,
   addStatusText,
 } from "./assets";
+import { resizeRendererToDisplaySize } from "./utils";
 // Flat
 
 console.log("Three.js version r" + THREE.REVISION);
 
-const MainScene = () => {
+const MainScene = (canvas: HTMLCanvasElement) => {
   // sizes
   const width = window.innerWidth;
   const height = window.innerHeight;
@@ -31,13 +33,12 @@ const MainScene = () => {
 
   // camera
   const camera = addCamera(width, height);
-  camera.position.set(-27, 5, 0);
 
   // 2d camera/2d scene
   const { scene2d, camera2d } = add2dLayer(width, height);
 
   // renderer
-  const renderer = addRenderer();
+  const renderer = addRenderer(canvas);
 
   // orbit controls
   new OrbitControls(camera, renderer.domElement);
@@ -54,6 +55,7 @@ const MainScene = () => {
   const youLostText = addStatusText(scene2d);
   const platform = addPlatform(factory, physics);
   const sphere = addSphere(scene, physics);
+  // const arrowHelper = addAxisHelper(scene);
 
   // clock
   const clock = new THREE.Clock();
@@ -100,8 +102,14 @@ const MainScene = () => {
     renderer.clearDepth();
     renderer.render(scene2d, camera2d);
 
+    if (resizeRendererToDisplaySize(renderer)) {
+      const canvas = renderer.domElement;
+      camera.aspect = canvas.clientWidth / canvas.clientHeight;
+      camera.updateProjectionMatrix();
+    }
+
     requestAnimationFrame(animate);
-    updatePlatformData(platform.quaternion);
+    // updatePlatformData(platform.quaternion);
 
     if (sphere.position.y < -20) {
       showYouLoseText(scene2d);
@@ -111,4 +119,4 @@ const MainScene = () => {
 };
 
 // '/ammo' is the folder where all ammo file are
-PhysicsLoader("/ammo", () => MainScene());
+PhysicsLoader("/ammo", (canvas) => MainScene(canvas));

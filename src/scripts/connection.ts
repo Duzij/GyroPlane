@@ -33,7 +33,7 @@ const handleSensorData = (connectionId: string, data: THREE.Quaternion) => {
   return quaternion;
 };
 
-export function handleConnection(roomId: string, scene2d: THREE.Scene, box) {
+export function handleConnection(roomId: string, scene2d: THREE.Scene, platform: THREE.Mesh) {
   const debugTextSprite = new TextSprite(textTexture);
   const scale = 0.4;
   debugTextSprite.setScale(scale);
@@ -50,6 +50,8 @@ export function handleConnection(roomId: string, scene2d: THREE.Scene, box) {
   socket.addEventListener("message", (message) => {
     const json = JSON.parse(message.data);
     console.log("Received message:", json);
+
+    platform.matrixAutoUpdate = false;
 
     switch (json.type) {
       case SensorMessageType.CONNECTED:
@@ -73,7 +75,9 @@ export function handleConnection(roomId: string, scene2d: THREE.Scene, box) {
         );
 
         // const updatedQuaternion = handleSensorData(json.id, quaternion);
-        box.quaternion.copy(quaternion);
+        platform.quaternion.copy(quaternion);
+        platform.matrix.makeRotationFromQuaternion(quaternion);
+        platform.matrixAutoUpdate = false;
         break;
 
       case SensorMessageType.SET_ORIENTATION:
