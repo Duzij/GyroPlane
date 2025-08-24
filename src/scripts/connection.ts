@@ -6,7 +6,7 @@ enum SensorMessageType {
   CONNECTED = "connected",
   DISCONNECTED = "disconnected",
   SENSOR = "sensor",
-  SET_ORIENTATION = "set_orientation",
+  SET_DEFAULT_POSITION = "sensor_set_default_position",
 }
 
 const sensorQuaternionOffsets = new Map<string, THREE.Quaternion>();
@@ -21,15 +21,17 @@ const handleSensorData = (connectionId: string, data: THREE.Quaternion) => {
     data.w,
   );
 
-  // Apply initial offset to handle default phone orientation
-  const offsetQuaternion = new THREE.Quaternion();
-  sensorQuaternionOffsets.set(connectionId, offsetQuaternion);
-  offsetQuaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2);
-
-  // Combine the offset with the sensor quaternion
-  quaternion.multiply(offsetQuaternion);
-
-  // Apply to platform
+  // Get the stored offset quaternion
+  const offsetQuaternion = sensorQuaternionOffsets.get(connectionId);
+  console.log(offsetQuaternion ? "Using offset quaternion:" : "No offset quaternion found.");
+  if (offsetQuaternion) {
+    // Create inverse of the offset quaternion
+    const inverseOffset = offsetQuaternion.clone().invert();
+    
+    // First apply the inverse offset to "cancel out" the initial orientation
+    // Then multiply by the new quaternion to get the relative rotation
+    quaternion.premultiply(inverseOffset);
+  }
   return quaternion;
 };
 
@@ -69,18 +71,18 @@ export function handleConnection(roomId: string, scene2d: THREE.Scene, platform:
       case SensorMessageType.SENSOR:
         const quaternion = new THREE.Quaternion(
           json.quaternion[0],
-          -json.quaternion[3],
-          -json.quaternion[1],
           json.quaternion[2],
+          -json.quaternion[1],
+          json.quaternion[3],
         );
 
-        // const updatedQuaternion = handleSensorData(json.id, quaternion);
-        platform.quaternion.copy(quaternion);
-        platform.matrix.makeRotationFromQuaternion(quaternion);
+        const updatedQuaternion = handleSensorData(json.id, quaternion);
+        platform.quaternion.copy(updatedQuaternion);
+        platform.matrix.makeRotationFromQuaternion(updatedQuaternion);
         platform.matrixAutoUpdate = false;
         break;
 
-      case SensorMessageType.SET_ORIENTATION:
+      case SensorMessageType.SET_DEFAULT_POSITION:
         const connectionId = json.id;
         const orientation = new THREE.Quaternion(
           json.orientation[0],

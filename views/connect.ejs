@@ -23,34 +23,69 @@
     </head>
 
     <body>
-        <h4>Connect to room</h4>
-
-        <h5 id="status"></h5>
-        <h5 id="sensor_status"></h5>
-        <table>
-            <thead>
-                <th>data</th>
-            </thead>
-            <tbody id="sensor_data">
-                <tr>
-                    <td>x</td>
-                    <td id="sensor_data_x"></td>
-                </tr>
-                <tr>
-                    <td>y</td>
-                    <td id="sensor_data_y"></td>
-                </tr>
-                <tr>
-                    <td>z</td>
-                    <td id="sensor_data_z"></td>
-                </tr>
-                <tr>
-                    <td>w</td>
-                    <td id="sensor_data_w"></td>
-                </tr>
-            </tbody>
-            <tbody id="accelerometer_data"></tbody>
-        </table>
+        <main>
+            <article>
+                <section>
+                    <h4>Connect to room</h4>
+                    <h5 id="status"></h5>
+                    <h5 id="sensor_status"></h5>
+                </section>
+            </article>
+            <article>
+                <section>
+                    <h4>Sensor Quaternion Data Raw</h4>
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td>x</td>
+                                <td id="sensor_data_x_raw"></td>
+                            </tr>
+                            <tr>
+                                <td>y</td>
+                                <td id="sensor_data_y_raw"></td>
+                            </tr>
+                            <tr>
+                                <td>z</td>
+                                <td id="sensor_data_z_raw"></td>
+                            </tr>
+                            <tr>
+                                <td>w</td>
+                                <td id="sensor_data_w_raw"></td>
+                            </tr>
+                        </tbody>
+                        <tbody id="accelerometer_data"></tbody>
+                    </table>
+                </section>
+                <section>
+                    <h4>Sensor Quaternion Data Adjusted</h4>
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td>x</td>
+                                <td id="sensor_data_x_adjusted"></td>
+                            </tr>
+                            <tr>
+                                <td>y</td>
+                                <td id="sensor_data_y_adjusted"></td>
+                            </tr>
+                            <tr>
+                                <td>z</td>
+                                <td id="sensor_data_z_adjusted"></td>
+                            </tr>
+                            <tr>
+                                <td>w</td>
+                                <td id="sensor_data_w_adjusted"></td>
+                            </tr>
+                        </tbody>
+                        <tbody id="accelerometer_data"></tbody>
+                    </table>
+                </section>
+            </article>
+            <article>
+                <h4>Set Initial Position</h4>
+                <button id="set_initial_position">Set Initial Position</button>
+            </article>
+        </main>
 
         <script type="module" src="/connect.js"></script>
     </body>
