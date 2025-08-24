@@ -9,32 +9,6 @@ enum SensorMessageType {
   SET_DEFAULT_POSITION = "sensor_set_default_position",
 }
 
-const sensorQuaternionOffsets = new Map<string, THREE.Quaternion>();
-
-// In your handleConnection function or where you receive sensor data
-const handleSensorData = (connectionId: string, data: THREE.Quaternion) => {
-  // Create a Three.js quaternion from received data
-  const quaternion = new THREE.Quaternion(
-    data.x,
-    data.y,
-    data.z,
-    data.w,
-  );
-
-  // Get the stored offset quaternion
-  const offsetQuaternion = sensorQuaternionOffsets.get(connectionId);
-  console.log(offsetQuaternion ? "Using offset quaternion:" : "No offset quaternion found.");
-  if (offsetQuaternion) {
-    // Create inverse of the offset quaternion
-    const inverseOffset = offsetQuaternion.clone().invert();
-    
-    // First apply the inverse offset to "cancel out" the initial orientation
-    // Then multiply by the new quaternion to get the relative rotation
-    quaternion.premultiply(inverseOffset);
-  }
-  return quaternion;
-};
-
 export function handleConnection(roomId: string, scene2d: THREE.Scene, platform: THREE.Mesh) {
   const debugTextSprite = new TextSprite(textTexture);
   const scale = 0.4;
@@ -51,7 +25,6 @@ export function handleConnection(roomId: string, scene2d: THREE.Scene, platform:
 
   socket.addEventListener("message", (message) => {
     const json = JSON.parse(message.data);
-    console.log("Received message:", json);
 
     platform.matrixAutoUpdate = false;
 
@@ -76,9 +49,8 @@ export function handleConnection(roomId: string, scene2d: THREE.Scene, platform:
           json.quaternion[3],
         );
 
-        const updatedQuaternion = handleSensorData(json.id, quaternion);
-        platform.quaternion.copy(updatedQuaternion);
-        platform.matrix.makeRotationFromQuaternion(updatedQuaternion);
+        platform.quaternion.copy(quaternion);
+        platform.matrix.makeRotationFromQuaternion(quaternion);
         platform.matrixAutoUpdate = false;
         break;
 
@@ -90,7 +62,6 @@ export function handleConnection(roomId: string, scene2d: THREE.Scene, platform:
           json.orientation[2],
           json.orientation[3],
         );
-        sensorQuaternionOffsets.set(connectionId, orientation);
         break;
 
       default:

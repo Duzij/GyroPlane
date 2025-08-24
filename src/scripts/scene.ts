@@ -3,7 +3,6 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 // physics
-import { PhysicsLoader } from "enable3d";
 import { AmmoPhysics, ExtendedMesh } from "@enable3d/ammo-physics";
 import { handleConnection } from "./connection";
 import { showYouLoseText } from "./gameEvents";
@@ -14,6 +13,7 @@ import {
   addLight,
   addPlatform,
   addRenderer,
+  addRoomCube,
   addSphere,
   addStatusText,
 } from "./assets";
@@ -22,7 +22,7 @@ import { resizeRendererToDisplaySize } from "./utils";
 
 console.log("Three.js version r" + THREE.REVISION);
 
-const MainScene = (canvas: HTMLCanvasElement) => {
+export const MainScene = (canvas: HTMLCanvasElement) => {
   // sizes
   const width = window.innerWidth;
   const height = window.innerHeight;
@@ -55,6 +55,7 @@ const MainScene = (canvas: HTMLCanvasElement) => {
   const youLostText = addStatusText(scene2d);
   const platform = addPlatform(factory, physics);
   const sphere = addSphere(scene, physics);
+  const roomCube = addRoomCube(scene);
   // const arrowHelper = addAxisHelper(scene);
 
   // clock
@@ -75,20 +76,6 @@ const MainScene = (canvas: HTMLCanvasElement) => {
     }
   });
 
-  // Update platform data
-  const updatePlatformData = (data) => {
-    const platformData = document.getElementById("platform_data");
-    if (platformData) {
-      platformData.innerHTML = `
-        <tr>
-          <td>${data.x}</td>
-          <td>${data.y}</td>
-          <td>${data.z}</td>
-        </tr>`;
-    }
-  };
-
-  // loop
   const animate = () => {
     platform.body.needUpdate = true; // this is how you update kinematic bodies
     const timeInMillisecondsSinceLastFrame = clock.getDelta() * 1000;
@@ -117,6 +104,3 @@ const MainScene = (canvas: HTMLCanvasElement) => {
   };
   requestAnimationFrame(animate);
 };
-
-// '/ammo' is the folder where all ammo file are
-PhysicsLoader("/ammo", (canvas) => MainScene(canvas));

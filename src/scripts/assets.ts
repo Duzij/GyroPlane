@@ -22,6 +22,18 @@ export function addStatusText(scene2d: THREE.Scene) {
   return youLostSprite;
 }
 
+export function addRoomCube(scene: THREE.Scene) {
+  const groundGeometry = new THREE.PlaneGeometry(100, 100);
+  const groundMaterial = new THREE.MeshPhongMaterial({
+    color: 0xdddddd,
+    side: THREE.DoubleSide,
+  });
+  const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = -3;
+  scene.add(ground);
+}
+
 export function add2dLayer(width: number, height: number) {
   const scene2d = new THREE.Scene();
   const camera2d = new THREE.OrthographicCamera(0, width, height, 0, 1, 10000);
@@ -31,7 +43,7 @@ export function add2dLayer(width: number, height: number) {
 
 export function addCamera(width: number, height: number) {
   const camera = new THREE.PerspectiveCamera(50, width / height);
-  camera.position.set(0, 5, 5);
+  camera.position.set(0, 1, 5);
   camera.lookAt(0, 0, 0);
   return camera;
 }
@@ -58,11 +70,14 @@ export function addRenderer(canvas: HTMLCanvasElement) {
 }
 
 export function addLight(scene: THREE.Scene) {
-  scene.add(new THREE.HemisphereLight(0xffffbb, 0x080820, 1));
-  scene.add(new THREE.AmbientLight(0x666666));
-  const light = new THREE.DirectionalLight(0xdfebff, 1);
-  light.position.set(50, 200, 100);
-  light.position.multiplyScalar(1.3);
+
+  // Lights
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+  scene.add(ambientLight);
+
+  const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+  dirLight.position.set(10, 10, 5);
+  scene.add(dirLight);
 }
 
 export function addPlatform(factory: any, physics: any): ExtendedMesh {

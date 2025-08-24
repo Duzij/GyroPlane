@@ -31,18 +31,16 @@
         margin: 4px 2px;
         cursor: pointer;
     }
+
+    #platform_canvas {
+       display: block;
+    }
 </style>
 
 <body>
     <main>
         <button id="restart">Restart scene</button>
-        <table>
-            <thead>
-                <th>Accelerometer Data</th>
-            </thead>
-            <tbody id="platform_data">
-            </tbody>
-        </table>
+        <canvas id="platform_canvas"></canvas>
     </main>
 </body>
 <script src="/bundle.js"></script>
