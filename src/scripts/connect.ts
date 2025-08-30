@@ -42,6 +42,9 @@ try {
     );
 }
 
+const accelerometer = new LinearAccelerationSensor({ frequency: 60 });
+const relativeOrientationSensor = new RelativeOrientationSensor({ frequency: 60 });
+
 (async () => {
     const permissions = await requestPermissions();
 
@@ -79,6 +82,16 @@ try {
 })();
 
 let sensorQuaternionOffset: number[] | null = null;
+// Add this at the top level of the file with other global variables
+let accelerometerOffset: {
+    x: number | undefined;
+    y: number | undefined;
+    z: number | undefined;
+} = {
+    x: undefined,
+    y: undefined,
+    z: undefined,
+};
 
 function initAbsoluteOrientationSensor(id: string, socket: WebSocket): void {
     requestPermissions().then((permissions) => {
@@ -95,52 +108,46 @@ function initAbsoluteOrientationSensor(id: string, socket: WebSocket): void {
 }
 
 function AccelerometerSensor(socket: WebSocket, id: string) {
-    const accelerometer = new Accelerometer({ frequency: 60 });
-    let lastX = 0, lastY = 0, lastZ = 0;
-    const gravity = 9.81;
-    
     accelerometer.onreading = () => {
         if (socket && socket.readyState === WebSocket.OPEN) {
-            // Apply low-pass filter to separate gravity from linear acceleration
-            const alpha = 0.7; // Smoothing factor
-            
-            // Update gravity component using low-pass filter
-            lastX = alpha * lastX + (1 - alpha) * (accelerometer.x ?? 0);
-            lastY = alpha * lastY + (1 - alpha) * (accelerometer.y ?? 0);
-            lastZ = alpha * lastZ + (1 - alpha) * (accelerometer.z ?? 0);
-            
-            // Remove gravity component to get linear acceleration
-            const linearAccX = (accelerometer.x ?? 0) - lastX;
-            const linearAccY = (accelerometer.y ?? 0) - lastY;
-            const linearAccZ = (accelerometer.z ?? 0) - lastZ;
-            
+            // Calculate adjusted values by subtracting the offset
+            const adjustedX = accelerometer.x! - (accelerometerOffset.x ?? 0);
+            const adjustedY = accelerometer.y! - (accelerometerOffset.y ?? 0);
+            const adjustedZ = accelerometer.z! - (accelerometerOffset.z ?? 0);
+
             const message = JSON.stringify({
                 type: "sensor_accelerometer",
                 id,
                 acceleration: {
-                    x: linearAccX,
-                    y: linearAccY,
-                    z: linearAccZ,
+                    x: adjustedX.toFixed(0),
+                    y: adjustedZ.toFixed(0), // Using Z for vertical movement
+                    z: -adjustedY.toFixed(0), // Inverted Y for forward/backward
                 },
                 rawAcceleration: {
                     x: accelerometer.x,
                     y: accelerometer.y,
                     z: accelerometer.z,
-                }
+                },
             });
-            
-            // Update UI with both raw and linear acceleration
+
+            // Update UI with both raw and adjusted values
             if (accelerometer.x !== undefined) {
                 getElementByIdOrThrow(`accelerometer_data_x_raw`).innerHTML =
-                    `Raw: ${accelerometer.x.toFixed(2)}, Linear: ${linearAccX.toFixed(2)}`;
+                    `Raw: ${accelerometer.x.toFixed(2)} | Adjusted: ${
+                        adjustedX.toFixed(2)
+                    }`;
             }
             if (accelerometer.y !== undefined) {
                 getElementByIdOrThrow(`accelerometer_data_y_raw`).innerHTML =
-                    `Raw: ${accelerometer.y.toFixed(2)}, Linear: ${linearAccY.toFixed(2)}`;
+                    `Raw: ${accelerometer.y.toFixed(2)} | Adjusted: ${
+                        adjustedY.toFixed(2)
+                    }`;
             }
             if (accelerometer.z !== undefined) {
                 getElementByIdOrThrow(`accelerometer_data_z_raw`).innerHTML =
-                    `Raw: ${accelerometer.z.toFixed(2)}, Linear: ${linearAccZ.toFixed(2)}`;
+                    `Raw: ${accelerometer.z.toFixed(2)} | Adjusted: ${
+                        adjustedZ.toFixed(2)
+                    }`;
             }
             socket.send(message);
         }
@@ -154,22 +161,26 @@ function AccelerometerSensor(socket: WebSocket, id: string) {
 }
 
 function OrientationSensor(socket: WebSocket, id: string) {
-    const sensor = new RelativeOrientationSensor({
-        frequency: 60,
-        referenceFrame: "device",
-    });
-
     document.getElementById("set_initial_position")?.addEventListener(
         "click",
         () => {
-            if (sensor.quaternion) {
-                sensorQuaternionOffset = [...sensor.quaternion];
+            if (relativeOrientationSensor.quaternion) {
+                sensorQuaternionOffset = [
+                    ...relativeOrientationSensor.quaternion,
+                ];
             }
+
+            // Set initial accelerometer offset
+            accelerometerOffset = {
+                x: accelerometer.x,
+                y: accelerometer.y,
+                z: accelerometer.z,
+            };
         },
     );
 
-    sensor.onreading = () => {
-        let quaternion: number[] = sensor.quaternion ?? [];
+    relativeOrientationSensor.onreading = () => {
+        let quaternion: number[] = relativeOrientationSensor.quaternion ?? [];
 
         if (sensorQuaternionOffset) {
             const currentQuat = new Quaternion(
@@ -206,7 +217,7 @@ function OrientationSensor(socket: WebSocket, id: string) {
         }
     };
 
-    sensor.onerror = (event: SensorErrorEvent) => {
+    relativeOrientationSensor.onerror = (event: SensorErrorEvent) => {
         if (event.error.name === "NotReadableError") {
             if (socket && socket.readyState === WebSocket.OPEN) {
                 socket.close(1000, "Sensor error occurred");
@@ -214,7 +225,7 @@ function OrientationSensor(socket: WebSocket, id: string) {
                     "WebSocket connection closed due to sensor error",
                 );
             }
-            sensor.stop();
+            relativeOrientationSensor.stop();
             const status = getElementByIdOrThrow<HTMLElement>("status");
             status.innerHTML += "Sensor is not available.";
         } else {
@@ -223,7 +234,7 @@ function OrientationSensor(socket: WebSocket, id: string) {
         }
     };
 
-    sensor.start();
+    relativeOrientationSensor.start();
 }
 
 function updateQuaternionTable(quaternion: number[], tableIdPostfix: string) {

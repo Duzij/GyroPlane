@@ -43,6 +43,9 @@ export function handleConnection(
 
       case SensorMessageType.SENSOR_ACCELEROMETER:
         // We're now using the linear acceleration which has gravity removed
+        // X: red
+        // Y: green
+        // Z: blue
         const acceleration = new THREE.Vector3(
           json.acceleration.x,
           json.acceleration.y,
