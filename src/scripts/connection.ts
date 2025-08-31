@@ -53,8 +53,8 @@ export function handleConnection(
         );
 
         // Apply a threshold to prevent drift from small movements
-        const threshold = 0.45;
-        const scaleFactor = 0.05; // Reduced scale factor since we're using linear acceleration
+        const threshold = 0.35;
+        const scaleFactor = 0.01; // Reduced scale factor since we're using linear acceleration
         
         if (Math.abs(acceleration.y) > threshold) {
           platform.position.setX(platform.position.x + acceleration.x * scaleFactor);

@@ -87,7 +87,7 @@ export function addPlatform(factory: any, physics: any): ExtendedMesh {
     height: 0.1,
     depth: 5,
   }, { lambert: { color: "red", transparent: true, opacity: 0.5 } });
-  physics.add.existing(box, { mass: 0, collisionFlags: 2 });
+  physics.add.existing(box, { mass: 50, collisionFlags: 2 });
   return box;
 }
 
@@ -100,6 +100,6 @@ export function addSphere(scene: THREE.Scene, physics: any) {
   sphere.name = "sphere";
   scene.add(sphere);
   sphere.position.set(0, 1, 0);
-  physics.add.existing(sphere as any);
+  physics.add.existing(sphere as any, { mass: 5 });
   return sphere;
 }
